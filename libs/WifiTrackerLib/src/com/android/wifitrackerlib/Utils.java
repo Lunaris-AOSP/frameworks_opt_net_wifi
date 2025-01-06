@@ -474,6 +474,11 @@ public class Utils {
                     && !networkSelectionStatus.hasEverConnected()) {
                 return context.getString(R.string.wifitrackerlib_wifi_disabled_password_failure);
             }
+            // Show DHCP failure message even if we're not disabled.
+            if (networkSelectionStatus.getDisableReasonCounter(
+                    NetworkSelectionStatus.DISABLED_DHCP_FAILURE) > 0) {
+                return context.getString(R.string.wifitrackerlib_wifi_disabled_network_failure);
+            }
         }
         switch (wifiConfiguration.getRecentFailureReason()) {
             case WifiConfiguration.RECENT_FAILURE_AP_UNABLE_TO_HANDLE_NEW_STA:
