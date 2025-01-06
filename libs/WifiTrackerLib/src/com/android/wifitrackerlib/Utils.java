@@ -445,7 +445,8 @@ public class Utils {
                         return context.getString(
                                 R.string.wifitrackerlib_wifi_disabled_password_failure);
                     }
-                    break;
+                    return context.getString(
+                            R.string.wifitrackerlib_wifi_disabled_consecutive_failures);
                 case NetworkSelectionStatus.DISABLED_AUTHENTICATION_FAILURE:
                 case NetworkSelectionStatus.DISABLED_AUTHENTICATION_NO_CREDENTIALS:
                 case NetworkSelectionStatus.DISABLED_AUTHENTICATION_NO_SUBSCRIPTION:
