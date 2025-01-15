@@ -74,6 +74,7 @@ import android.net.wifi.sharedconnectivity.app.SharedConnectivityClientCallback;
 import android.net.wifi.sharedconnectivity.app.SharedConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.os.test.TestLooper;
 import android.platform.test.annotations.RequiresFlagsEnabled;
 import android.telephony.SubscriptionManager;
@@ -115,6 +116,7 @@ public class WifiPickerTrackerTest {
     @Mock private Resources mMockResources;
     @Mock private WifiManager mMockWifiManager;
     @Mock private WifiScanner mWifiScanner;
+    @Mock private PowerManager mPowerManager;
     @Mock private ConnectivityManager mMockConnectivityManager;
     @Mock private ConnectivityDiagnosticsManager mMockConnectivityDiagnosticsManager;
     @Mock private TelephonyManager mMockTelephonyManager;
@@ -220,6 +222,8 @@ public class WifiPickerTrackerTest {
         when(mMockContext.getSystemService(ConnectivityDiagnosticsManager.class))
                 .thenReturn(mMockConnectivityDiagnosticsManager);
         when(mMockContext.getSystemService(WifiScanner.class)).thenReturn(mWifiScanner);
+        when(mMockContext.getSystemService(PowerManager.class)).thenReturn(mPowerManager);
+        when(mPowerManager.isInteractive()).thenReturn(true);
         when(mMockContext.getSystemService(SharedConnectivityManager.class))
                 .thenReturn(mMockSharedConnectivityManager);
         when(mMockContext.getString(anyInt())).thenReturn("");
@@ -2497,6 +2501,26 @@ public class WifiPickerTrackerTest {
         verify(mWifiScanner, never()).startScan(any(), mScanListenerCaptor.capture());
         verify(mMockWifiManager, never()).startScan();
         verify(mInjector).disableVerboseLogging();
+    }
+
+    /**
+     * Tests that the BaseWifiTracker.Scanner does not scan if the device isn't interactive
+     * (i.e. screen off) regardless if onStart() is called.
+     */
+    @Test
+    public void testScanner_notInteractive_scannerDoesNotStart() {
+        when(mPowerManager.isInteractive()).thenReturn(false);
+        final WifiPickerTracker wifiPickerTracker = createTestWifiPickerTracker();
+        wifiPickerTracker.onStart();
+        mTestLooper.dispatchAll();
+        verify(mMockContext).registerReceiver(mBroadcastReceiverCaptor.capture(),
+                any(), any(), any());
+        mBroadcastReceiverCaptor.getValue().onReceive(mMockContext,
+                new Intent(WifiManager.WIFI_STATE_CHANGED_ACTION).putExtra(
+                        WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_ENABLED));
+
+        verify(mWifiScanner, never()).startScan(any(), any());
+        verify(mMockWifiManager, never()).startScan();
     }
 
     @Test
